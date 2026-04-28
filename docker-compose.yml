@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pedagogical_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pedagogical_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3001}:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/pedagogical_db
+      JWT_SECRET: change-me-to-a-long-random-string
+      SEED_ON_START: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Lightweight web GUI for any SQL DB. Login with:
+  #   System=PostgreSQL, Server=db, User=postgres, Password=postgres, DB=pedagogical_db
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DESIGN: dracula
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Prisma's own visual table editor. OPT-IN to avoid port 5555 conflicts.
+  # Start with:  docker compose --profile studio up
+  # Open at http://localhost:5555 (override via STUDIO_PORT=5556 ...).
+  studio:
+    profiles: ["studio"]
+    build: .
+    restart: unless-stopped
+    command: npx prisma studio --port 5555 --hostname 0.0.0.0 --browser none
+    ports:
+      - "${STUDIO_PORT:-5555}:5555"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/pedagogical_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
