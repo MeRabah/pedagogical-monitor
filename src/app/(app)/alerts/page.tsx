@@ -1,11 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AlertsPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const moduleFilter =
+    session.role === "professor" ? { module: { professorId: session.sub } } : {};
+
   const alerts = await prisma.alert.findMany({
+    where: moduleFilter,
     include: { module: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
   });

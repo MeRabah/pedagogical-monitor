@@ -66,11 +66,23 @@ All demo accounts use password `password123`:
 |---|---|
 | admin@univ.edu | admin |
 | committee@univ.edu | committee |
-| prof1@univ.edu | professor |
-| prof2@univ.edu | professor |
-| prof3@univ.edu | professor |
-| prof4@univ.edu | professor |
-| prof5@univ.edu | professor |
+| amrani@univ.edu | professor |
+| belhadj@univ.edu | professor |
+| cherif@univ.edu | professor |
+| djabri@univ.edu | professor |
+| essaid@univ.edu | professor |
+| ferhat@univ.edu | professor |
+| ghanem@univ.edu | professor |
+| hadj@univ.edu | professor |
+| idris@univ.edu | professor |
+| jaafer@univ.edu | professor |
+| kader@univ.edu | professor |
+| larbi@univ.edu | professor |
+| mansouri@univ.edu | professor |
+| nouri@univ.edu | professor |
+| oulhadj@univ.edu | professor |
+
+Each professor account sees and edits only their own assigned modules (2–3 per professor across different semesters).
 
 Professors can log progress directly from a module's detail page (Modules → click a module → "Log progress" form).
 

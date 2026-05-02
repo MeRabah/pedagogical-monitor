@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -25,6 +26,7 @@ const links = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [dark, setDark] = useState(false);
   const [me, setMe] = useState<{ email: string; role: string } | null>(null);
 
@@ -35,6 +37,11 @@ export function Sidebar() {
       .then((d) => setMe(d.user))
       .catch(() => {});
   }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  }
 
   function toggle() {
     const next = !dark;
@@ -129,13 +136,13 @@ export function Sidebar() {
           {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {dark ? "Light mode" : "Dark mode"}
         </button>
-        <Link
-          href="/api/auth/logout"
-          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]"
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]"
         >
           <LogOut className="h-4 w-4" />
           Sign out
-        </Link>
+        </button>
       </div>
     </aside>
   );

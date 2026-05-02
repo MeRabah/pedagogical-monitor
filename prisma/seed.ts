@@ -59,22 +59,31 @@ const CURRICULUM: Mod[] = [
   { name: "Séminaire & workshops", semester: "S9", c: 21, td: 0, tp: 0 },
 ];
 
+// 15 professors — each will be assigned 2-3 modules spanning different semesters.
+const PROFESSORS = [
+  { first: "Karim",   last: "Amrani"   },
+  { first: "Sara",    last: "Belhadj"  },
+  { first: "Mohamed", last: "Cherif"   },
+  { first: "Nadia",   last: "Djabri"   },
+  { first: "Omar",    last: "Essaid"   },
+  { first: "Leila",   last: "Ferhat"   },
+  { first: "Rachid",  last: "Ghanem"   },
+  { first: "Fatima",  last: "Hadj"     },
+  { first: "Youcef",  last: "Idris"    },
+  { first: "Amina",   last: "Jaafer"   },
+  { first: "Hichem",  last: "Kader"    },
+  { first: "Meriem",  last: "Larbi"    },
+  { first: "Djamel",  last: "Mansouri" },
+  { first: "Souad",   last: "Nouri"    },
+  { first: "Tarek",   last: "Oulhadj"  },
+];
+
 const ACADEMIC_YEAR = "2025-2026";
 
 function semesterToYearLabel(s: Mod["semester"]) {
   if (s === "S5" || s === "S6") return `L3 (${ACADEMIC_YEAR}) - ${s}`;
   if (s === "S7" || s === "S8") return `M1 (${ACADEMIC_YEAR}) - ${s}`;
   return `M2 (${ACADEMIC_YEAR}) - ${s}`;
-}
-
-function slug(s: string) {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/(^_|_$)/g, "")
-    .slice(0, 24);
 }
 
 function rand(min: number, max: number) {
@@ -108,23 +117,32 @@ async function main() {
     data: { name: "Pedagogical Committee", email: "committee@univ.edu", password, role: Role.committee },
   });
 
+  // Create 15 professors — each ends up teaching 2-3 modules.
+  const professors = await Promise.all(
+    PROFESSORS.map(({ first, last }) =>
+      prisma.user.create({
+        data: {
+          name: `${first} ${last}`,
+          email: `${last.toLowerCase()}@univ.edu`,
+          password,
+          role: Role.professor,
+        },
+      })
+    )
+  );
+
   const today = new Date();
   const yearStart = new Date(today.getFullYear(), 8, 1); // Sept 1
-  const credentials: { email: string; module: string }[] = [];
+
+  // Track which modules each professor teaches for the summary log.
+  const profModules: Record<string, string[]> = {};
+  for (const p of professors) profModules[p.email] = [];
 
   for (let i = 0; i < CURRICULUM.length; i++) {
     const m = CURRICULUM[i];
-    const profEmail = `${slug(m.name)}@univ.edu`;
-
-    const professor = await prisma.user.create({
-      data: {
-        name: `Prof. ${m.name}`,
-        email: profEmail,
-        password,
-        role: Role.professor,
-      },
-    });
-    credentials.push({ email: profEmail, module: m.name });
+    // Distribute modules evenly across professors (gives 2-3 each).
+    const professor = professors[Math.floor(i * PROFESSORS.length / CURRICULUM.length)];
+    profModules[professor.email].push(m.name);
 
     const isDelayed = i % 8 === 0; // ~12% delayed
     const mod = await prisma.module.create({
@@ -220,11 +238,12 @@ async function main() {
   console.log(`\nSeed complete. ${CURRICULUM.length} modules across S5-S9.`);
   console.log("All accounts use password: password123\n");
   console.log("System accounts:");
-  console.log("  admin@univ.edu       (admin — can edit any module)");
-  console.log("  committee@univ.edu   (committee — read-only)");
-  console.log("\nProfessors (each owns exactly one module):");
-  for (const c of credentials) {
-    console.log(`  ${c.email.padEnd(40)} → ${c.module}`);
+  console.log("  admin@univ.edu       (admin)");
+  console.log("  committee@univ.edu   (committee)\n");
+  console.log("Professors (each teaches 2-3 modules):");
+  for (const p of professors) {
+    const mods = profModules[p.email];
+    console.log(`  ${p.email.padEnd(28)} → ${mods.join(" | ")}`);
   }
 }
 

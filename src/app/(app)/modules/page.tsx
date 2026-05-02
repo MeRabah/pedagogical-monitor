@@ -3,11 +3,18 @@ import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
 import { moduleProgress } from "@/lib/progress";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import { moduleWhereForSession } from "@/lib/authorization";
 
 export const dynamic = "force-dynamic";
 
 export default async function ModulesPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
   const modules = await prisma.module.findMany({
+    where: moduleWhereForSession(session),
     include: {
       professor: { select: { name: true } },
       components: true,

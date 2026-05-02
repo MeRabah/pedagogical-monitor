@@ -8,6 +8,9 @@ import {
   ProgressLineChart,
 } from "@/components/charts/DashboardCharts";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import { moduleWhereForSession } from "@/lib/authorization";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +22,15 @@ function semesterOf(academicYear: string) {
 }
 
 export default async function DashboardPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const modWhere = moduleWhereForSession(session);
+  const isProfessor = session.role === "professor";
+
   const [modules, alerts, allComponents, logs] = await Promise.all([
     prisma.module.findMany({
+      where: modWhere,
       include: {
         professor: { select: { name: true } },
         components: true,
@@ -28,9 +38,19 @@ export default async function DashboardPage() {
       },
       orderBy: [{ academicYear: "asc" }, { name: "asc" }],
     }),
-    prisma.alert.findMany({ where: { resolved: false } }),
-    prisma.moduleComponent.findMany(),
-    prisma.progressLog.findMany({ orderBy: { logDate: "asc" } }),
+    prisma.alert.findMany({
+      where: {
+        resolved: false,
+        ...(isProfessor ? { module: { professorId: session.sub } } : {}),
+      },
+    }),
+    prisma.moduleComponent.findMany({
+      where: isProfessor ? { module: { professorId: session.sub } } : {},
+    }),
+    prisma.progressLog.findMany({
+      where: isProfessor ? { component: { module: { professorId: session.sub } } } : {},
+      orderBy: { logDate: "asc" },
+    }),
   ]);
 
   const total = modules.length;

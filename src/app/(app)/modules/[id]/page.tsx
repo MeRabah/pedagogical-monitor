@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { componentProgress, moduleProgress } from "@/lib/progress";
 import { UpdateProgressForm } from "@/components/UpdateProgressForm";
 import { getSession } from "@/lib/auth";
+import { canAccessModule } from "@/lib/authorization";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function ModuleDetail({
     },
   });
   if (!mod) notFound();
+  if (!(await canAccessModule(session!, id))) notFound();
 
   const p = moduleProgress(mod.components);
   const canEdit =

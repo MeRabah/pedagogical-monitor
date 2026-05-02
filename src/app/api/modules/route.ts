@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { moduleProgress } from "@/lib/progress";
+import { getSession } from "@/lib/auth";
+import { moduleWhereForSession } from "@/lib/authorization";
 
 export async function GET() {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const modules = await prisma.module.findMany({
+    where: moduleWhereForSession(session),
     include: {
       professor: { select: { id: true, name: true, email: true } },
       components: true,
@@ -27,6 +33,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (session.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
   const body = await req.json();
   const mod = await prisma.module.create({
     data: {

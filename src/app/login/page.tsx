@@ -27,7 +27,6 @@ export default function LoginPage() {
       return;
     }
     router.push("/dashboard");
-    router.refresh();
   }
 
   return (
@@ -71,25 +70,30 @@ export default function LoginPage() {
             </button>
             <div className="text-xs text-[hsl(var(--muted-foreground))] space-y-1 pt-2 border-t border-[hsl(var(--border))]">
               <p className="font-medium text-center">
-                Demo accounts (password: password123)
+                Demo accounts · password: <code>password123</code>
               </p>
               <ul className="space-y-0.5">
-                <li>admin@univ.edu — admin (edits any module)</li>
-                <li>committee@univ.edu — read-only</li>
-                <li>
-                  Professors: one per module, email is a slug of the module
-                  name. Examples:
-                  <ul className="pl-3 mt-0.5">
-                    <li>compilation@univ.edu</li>
-                    <li>machine_learning@univ.edu</li>
-                    <li>deep_learning@univ.edu</li>
-                  </ul>
-                </li>
+                <li><span className="font-medium">admin@univ.edu</span> — sees all modules</li>
+                <li><span className="font-medium">committee@univ.edu</span> — read-only</li>
               </ul>
-              <p className="text-center pt-1">
-                Full list printed by <code>docker compose logs app</code> after
-                seeding.
-              </p>
+              <p className="pt-1 font-medium">Professors (each teaches 2–3 modules):</p>
+              <ul className="space-y-0.5 columns-2">
+                <li>amrani@univ.edu</li>
+                <li>belhadj@univ.edu</li>
+                <li>cherif@univ.edu</li>
+                <li>djabri@univ.edu</li>
+                <li>essaid@univ.edu</li>
+                <li>ferhat@univ.edu</li>
+                <li>ghanem@univ.edu</li>
+                <li>hadj@univ.edu</li>
+                <li>idris@univ.edu</li>
+                <li>jaafer@univ.edu</li>
+                <li>kader@univ.edu</li>
+                <li>larbi@univ.edu</li>
+                <li>mansouri@univ.edu</li>
+                <li>nouri@univ.edu</li>
+                <li>oulhadj@univ.edu</li>
+              </ul>
             </div>
           </form>
         </CardContent>

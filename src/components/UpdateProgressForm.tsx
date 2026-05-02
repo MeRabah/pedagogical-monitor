@@ -30,8 +30,13 @@ export function UpdateProgressForm({ components }: { components: Component[] }) 
     });
     setSubmitting(false);
     if (!res.ok) {
-      const j = await res.json().catch(() => ({}));
-      setErr(j.error ?? "Update failed");
+      const text = await res.text();
+      let detail = text;
+      try {
+        const j = JSON.parse(text);
+        detail = j.error ?? text;
+      } catch {}
+      setErr(`(${res.status}) ${detail || "Update failed"}`);
       return;
     }
     setMsg(`Logged ${hours}h.`);

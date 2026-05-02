@@ -12,9 +12,9 @@ export function middleware(req: NextRequest) {
   }
   const token = req.cookies.get("auth_token")?.value;
   if (!token) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const host = req.headers.get("host") ?? req.nextUrl.host;
+    const proto = req.nextUrl.protocol; // "http:" or "https:"
+    return NextResponse.redirect(new URL("/login", `${proto}//${host}`));
   }
   return NextResponse.next();
 }
