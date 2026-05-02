@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const schema = z.object({
   componentId: z.string().uuid(),
-  hoursAdded: z.number().int().positive(),
+  hoursAdded: z.number().int().refine((n) => n !== 0, { message: "Hours cannot be zero" }),
 });
 
 export async function POST(req: NextRequest) {
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const newCompleted = Math.min(component.plannedHours, component.completedHours + hoursAdded);
+  const newCompleted = Math.max(0, Math.min(component.plannedHours, component.completedHours + hoursAdded));
   const status = deriveStatus({ ...component, completedHours: newCompleted });
 
   const updated = await prisma.moduleComponent.update({
